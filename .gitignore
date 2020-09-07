@@ -129,6 +129,6 @@ dmypy.json
 .pyre/
 
 #cls files
-*.cls
+*.csv
 *.xlsx
 *.xls
