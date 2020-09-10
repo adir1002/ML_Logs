@@ -137,5 +137,6 @@ all_queries.*
 after_reduce&scale.*
 queries/
 
-after_reduce&scale.csv all_queries.csv
+after_reduce&scale.csv
+all_queries.csv
 
