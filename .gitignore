@@ -132,3 +132,7 @@ dmypy.json
 *.csv
 *.xlsx
 *.xls
+
+all_queries.*
+after_reduce&scale.*
+queries/
