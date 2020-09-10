@@ -9,13 +9,24 @@ import numpy as np
 import matplotlib.pyplot as plt
 import create_out as co
 from sklearn.preprocessing import StandardScaler
+import tensorflow as tf
+from tensorflow import keras 
+import seaborn as sns
+from pylab import rcParams
+from pandas.plotting import register_matplotlib_converters
+import pandas as pd
+import numpy as np
+import matplotlib.pyplot as plt
+import create_out as co
+from sklearn.preprocessing import MinMaxScaler
+import statistics 
     
 RANDOM_SEED = 42
 THRESHOLD = 0.65
 TIME_STEPS = 1
 index_plt=1
 index_file= 1
-out=1
+out=372
 
 register_matplotlib_converters()
 sns.set(style='whitegrid', palette='muted', font_scale=1.5)
@@ -29,7 +40,25 @@ for i in range(1,out+1):
 
 df={}
 for i in range(1,out+1):
-    df[i] = pd.read_csv('out'+str(i)+'.csv', parse_dates=['Date'], index_col='Date')
+    df[i] = pd.read_csv('out'+str(i)+'.csv', parse_dates=['Date'],index_col=['Date'])
+
+out_to_keep = []
+    
+for i in range(1,out+1):
+    if(statistics.variance(df[i].iloc[:,0]) != 0.0):
+        out_to_keep.append(i)
+        
+new_df = {}
+for i in out_to_keep:
+    new_df[i] = df[i]
+
+   
+    
+   
+
+df_full=pd.DataFrame()
+for i in range(1,out+1):
+    df_full[i]=new_df[i].iloc[:,0]
 # df=df.iloc[0:100,:]
 # plt.figure(index_plt)
 # index_plt +=1
