@@ -31,7 +31,7 @@ def create_file(index_quary=1,filename='queries/query.csv'):
     return quary
 
         
-def reduce_queries(scale='none',out=OUT,separately=True):
+def reduce_queries(scale='none',out=OUT):
     df={}
     for i in range(1,out+1):
         df[i] = pd.read_csv('queries/query'+str(i)+'.csv', parse_dates=['Date'],index_col=['Date'])
