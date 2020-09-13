@@ -7,26 +7,43 @@ from pandas.plotting import register_matplotlib_converters
 import pandas as pd
 import numpy as np
 import matplotlib.pyplot as plt
-import create_out as co
 from sklearn.preprocessing import StandardScaler
-import tensorflow as tf
-from tensorflow import keras 
-import seaborn as sns
-from pylab import rcParams
-from pandas.plotting import register_matplotlib_converters
-import pandas as pd
-import numpy as np
-import matplotlib.pyplot as plt
-import create_out as co
-from sklearn.preprocessing import MinMaxScaler
-import statistics 
+import statistics
+import os
+import errno
+
+def create_separated_files(out=372):
+    try:
+        os.makedirs('Squeries')
+    except OSError as e:
+        if e.errno != errno.EEXIST:
+            raise
+    for i in range(1,out+1):
+        create_file(i,'Squeries/query'+str(i)+'.csv')
+  
+def create_file(index_quary=1,filename='Squeries/query.csv'):
+    df=pd.read_csv('all_queries.csv')
+    df_t=df.T
+    index_t=df_t.index[1:]
+    data_t=list(df_t[[index_quary-1]][1:].values)
+    quary= str(df_t[[index_quary-1]].values[0:1])
     
+    X=pd.DataFrame(data=data_t,columns=['Counter'])
+    X=X.set_index(index_t)
+    X.index.names = ['Date']
+    X.to_csv(filename,index=True)
+    return quary
+    
+
+
+
 RANDOM_SEED = 42
 THRESHOLD = 0.65
 TIME_STEPS = 1
 index_plt=1
 index_file= 1
 out=372
+OUT=372
 
 register_matplotlib_converters()
 sns.set(style='whitegrid', palette='muted', font_scale=1.5)
@@ -35,18 +52,29 @@ rcParams['figure.figsize'] = 22, 10
 np.random.seed(RANDOM_SEED)
 tf.random.set_seed(RANDOM_SEED)
 
-df = pd.read_csv('after_reduce&scale.csv', parse_dates=['Date'], index_col='Date')
-X=df[:]
-df_test={}
+create_separated_files(OUT)
 
-# create_separated_files(out=372)
-# reduce_queries(scale='MinMax')
-
+df={}
 for i in range(1,out+1):
+    df[i] = pd.read_csv('Squeries/query'+str(i)+'.csv', parse_dates=['Date'],index_col=['Date'])
+
+out_to_keep = []
+    
+for i in range(1,out+1):
+    if(statistics.variance(df[i].iloc[:,0]) != 0.0):
+        out_to_keep.append(i)
+        
+separat_df = {}
+for i in out_to_keep:
+    separat_df[i] = df[i]
+
+
+df_test={}
+for i in out_to_keep:
         
     scaler = StandardScaler()
-    scaler = scaler.fit(df[i][['Counter']])
-    df[i]['Logs'] = scaler.transform(df[i][['Counter']])  
+    scaler = scaler.fit(separat_df[i][['Counter']])
+    separat_df[i]['Logs'] = scaler.transform(separat_df[i][['Counter']])  
     def create_dataset(X, y, time_steps=1):
         Xs, ys = [], []
         for i in range(len(X) - time_steps):
@@ -61,8 +89,8 @@ for i in range(1,out+1):
     
     # reshape to [samples, time_steps, n_features]
     X, y = create_dataset(
-      df[i][['Logs']],
-      df[i].Logs,
+      separat_df[i][['Logs']],
+      separat_df[i].Logs,
       TIME_STEPS
     )
     
@@ -99,9 +127,9 @@ for i in range(1,out+1):
     
     df_test[i]=pd.DataFrame()
     # df_test = pd.DataFrame(df.take(0, axis=2))   
-    df_test[i] = pd.DataFrame(index=df[i][:].index)
+    df_test[i] = pd.DataFrame(index=separat_df[i][:].index)
     df_test[i]['score'] = X_pred.take(0, axis=2)
-    df_test[i]['Logs'] = df[i][:].Logs
+    df_test[i]['Logs'] = separat_df[i][:].Logs
     df_test[i]['loss'] = test_mae_loss
     df_test[i]['cluster'] = np.where((df_test[i]['score']<
                                                df_test[i]['score'].mean()+
@@ -125,6 +153,8 @@ for i in range(1,out+1):
     
     anomalies_thers = df_test[i][df_test[i].anomaly_thers == True]
     anomalies_thers.head()
+    anomalies = df_test[i][df_test[i].cluster == 1]
+    anomalies.head()
     
     # plt.figure(index_plt)
     # index_plt +=1
@@ -146,33 +176,38 @@ for i in range(1,out+1):
     # plt.legend();
     
     
-    plt.figure(index_plt)
-    index_plt +=1
-    plt.plot(df_test[i].index, df_test[i].score, label='cluster score')
-    plt.plot(df_test[i].index, df_test[i]['mean_1std'], label='mean + 2 std')
-    plt.xticks(rotation=25)
-    plt.legend()
+    # plt.figure(index_plt)
+    # index_plt +=1
+    # plt.plot(df_test[i].index, df_test[i].score, label='cluster score')
+    # plt.plot(df_test[i].index, df_test[i]['mean_1std'], label='mean + 2 std')
+    # plt.xticks(rotation=25)
+    # plt.legend()
     
-    anomalies = df_test[i][df_test[i].cluster == 1]
-    anomalies.head()
     
-    plt.figure(index_plt)
-    index_plt +=1
-    plt.plot(
-      df[i][:].index, 
-      scaler.inverse_transform(df[i][:].Logs), 
-      label='Server Logs '
-    );
+
     
-    sns.scatterplot(
-      anomalies.index,
-      scaler.inverse_transform(anomalies.Logs),
-      color=sns.color_palette()[3],
-      s=52,
-      label='anomaly'
-    )
-    plt.xticks(rotation=25)
-    plt.title('with mean & 2 std')
-    plt.legend();
+    # plt.figure(index_plt)
+    # index_plt +=1
+    # plt.plot(
+    #   df[i][:].index, 
+    #   scaler.inverse_transform(df[i][:].Logs), 
+    #   label='Server Logs '
+    # );
+    
+    # sns.scatterplot(
+    #   anomalies.index,
+    #   scaler.inverse_transform(anomalies.Logs),
+    #   color=sns.color_palette()[3],
+    #   s=52,
+    #   label='anomaly'
+    # )
+    # plt.xticks(rotation=25)
+    # plt.title('with mean & 2 std')
+    # plt.legend();
 
 
+
+
+
+
+  

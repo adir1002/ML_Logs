@@ -1,6 +1,5 @@
 # -*- coding: utf-8 -*-
 import pandas as pd
-import numpy as np
 import os
 from sklearn.preprocessing import StandardScaler
 from sklearn.preprocessing import MinMaxScaler
@@ -32,7 +31,7 @@ def create_file(index_quary=1,filename='queries/query.csv'):
     return quary
 
         
-def reduce_queries(scale='none',out=OUT):
+def reduce_queries(scale='none',out=OUT,separately=True):
     df={}
     for i in range(1,out+1):
         df[i] = pd.read_csv('queries/query'+str(i)+'.csv', parse_dates=['Date'],index_col=['Date'])
@@ -54,7 +53,7 @@ def reduce_queries(scale='none',out=OUT):
         for i in out_to_keep:  
             scaler = StandardScaler()
             scaler = scaler.fit(new_df[i][['Counter']])
-            new_df[i]['Counter'] = scaler.transform(new_df[i][['Counter']])  
+            new_df[i]['Counter'] = scaler.transform(new_df[i][['Counter']]) 
     df_full=pd.DataFrame()
     for i in out_to_keep:
         df_full[i]=new_df[i].iloc[:,0]        

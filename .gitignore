@@ -136,6 +136,7 @@ dmypy.json
 all_queries.*
 after_reduce&scale.*
 queries/
+Squeries/
 
 after_reduce&scale.csv
 all_queries.csv

@@ -34,8 +34,7 @@ from sklearn.decomposition import PCA
 
 outliers_fraction = 0.1
 clusters_separation = [0]
-df = pd.read_csv('after_reduce.csv', parse_dates=['Date'], index_col='Date')
-X=df[:]
+
 
 
 # initialize a set of detectors for LSCP
@@ -83,9 +82,6 @@ classifiers = {
 # Show all detectors
 for i, clf in enumerate(classifiers.keys()):
     print('Model', i + 1, clf)
-
-X=df[:]
-X['Index_Date']=X.index
 
 X_scale = pd.read_csv('after_reduce&scale.csv', parse_dates=['Date'], index_col='Date')
 
